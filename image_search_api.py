@@ -19,9 +19,4 @@ def get_images(query):
   response = requests.get(get_url, params=params)
   response.raise_for_status()
   search_results = response.json()
-  # Create a list with the links of the images gotten from the search_ and return it
-  image_links = []
-  for result in search_results['items']:
-    image_links.append(result['link'])
-  #Return a list of the links of the images
-  return image_links
+  return [result['link'] for result in search_results['items']]

@@ -82,7 +82,7 @@ def generate_clip(text, ip, i, qid, language_id) -> dict: # instance path, index
     "da": "da-DK",
   }.get(language_id, "en-US")
   synthesize_text_with_audio_profile(text, output=fn, language_code=language_code)
-  return dict()
+  return {}
 
 def generate_image(query) -> dict:
   image_url = get_images(query)[0]
@@ -106,7 +106,7 @@ def execute(task):
 
 
 def generate_presentation(qid, query_text, user_prof, instance_path, language_id):
-  language_name = lang_id2natural_lang_lang(language_id)  
+  language_name = lang_id2natural_lang_lang(language_id)
   query = f'Write content for a slide deck about {query_text} for a listener who is a {user_prof}. Write the result in {language_name}. Return a JSON list with data about each slide. The list consists of ' \
               f'objects with a "text" key containing a paragraph ' \
               'that is spoken by the presenter, a "title" key to name the slide with low verbose, a "key_points" key which will contain a list of 3 key points (a couple of ' \
@@ -130,12 +130,21 @@ def generate_presentation(qid, query_text, user_prof, instance_path, language_id
     slides[i]["image_status"] = "pending"
     slides[i]["is_follow_up"] = False
 
-  tasks = []
-  for i, text in enumerate([slide["text"] for slide in slides]):
-    tasks.append(dict(func=generate_clip, kwargs=dict(text=text, i=i, qid=qid, language_id=language_id, ip=instance_path)))
-  for image_query in [slide["image_query"] for slide in slides]:
-    tasks.append(dict(func=generate_image, kwargs=dict(query=image_query)))
-
+  tasks = [
+      dict(
+          func=generate_clip,
+          kwargs=dict(
+              text=text,
+              i=i,
+              qid=qid,
+              language_id=language_id,
+              ip=instance_path,
+          ),
+      ) for i, text in enumerate(slide["text"] for slide in slides)
+  ]
+  tasks.extend(
+      dict(func=generate_image, kwargs=dict(query=image_query))
+      for image_query in [slide["image_query"] for slide in slides])
   with multiprocessing.Pool(len(tasks)) as p:
     results = p.map(execute, tasks)
 

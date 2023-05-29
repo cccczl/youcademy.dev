@@ -43,5 +43,5 @@ def synthesize_text_with_audio_profile(text, output, effects_profile_id='medium-
     # The response's audio_content is binary.
     with open(output, "wb") as out:
         out.write(response.audio_content)
-        print('Audio content written to file "%s"' % output)
+        print(f'Audio content written to file "{output}"')
 
