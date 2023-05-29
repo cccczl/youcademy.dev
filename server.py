@@ -86,10 +86,9 @@ def get_audio(qid, i):
   return send_file(fn, mimetype='audio/mpeg')
 
 def is_presentation_ready(slides):
-  for slide in slides:
-    if slide["image_status"] == "pending" or slide["audio_status"] == "pending":
-      return False
-  return True
+  return not any(
+      slide["image_status"] == "pending" or slide["audio_status"] == "pending"
+      for slide in slides)
 
 @app.route('/debug/<string:qid>')
 def get_debug(qid):
@@ -108,7 +107,7 @@ def get_data(qid):
   if presentation["status"] == "pending": # fixed loading data, hacky
     return jsonify(status="pending") # don't return the slides if the presentation is still loading.
   # else, must be real slides
-  if not "slides" in presentation:
+  if "slides" not in presentation:
     return jsonify(status="pending")
   slides = presentation["slides"]
   # if not is_presentation_ready(slides):
